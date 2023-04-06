@@ -103,7 +103,8 @@ export default {
         if (valid) {
           try {
             this.loading = true
-            await this.$store.dispatch('user/login', this.loginForm)
+            // await this.$store.dispatch('user/login', this.loginForm)
+            // console.log('请求成功')
             // 验证成功后跳转到首页
             this.$router.push('/')
           } catch (error) {
