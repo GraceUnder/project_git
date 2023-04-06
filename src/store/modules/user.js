@@ -1,91 +1,51 @@
-import { login, logout, getInfo } from '@/api/user'
+
+import { login, getInfo, getUserDetailById } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
-import { resetRouter } from '@/router'
-
-const getDefaultState = () => {
-  return {
-    token: getToken(),
-    name: '',
-    avatar: ''
-  }
+const state = {
+  token: getToken(),
+  userInfo: {}
 }
-
-const state = getDefaultState()
-
 const mutations = {
-  RESET_STATE: (state) => {
-    Object.assign(state, getDefaultState())
+  // 修改token
+  setToken(state, payload) {
+    state.token = payload
+    // 修改coke里面的的token
+    setToken(payload)
+    // console.log(state.token)
   },
-  SET_TOKEN: (state, token) => {
-    state.token = token
+  // 删除token
+  removeToken(state) {
+    // 清楚token
+    state.token = null
+    removeToken()
   },
-  SET_NAME: (state, name) => {
-    state.name = name
+  updataUserInfo(state, payload) {
+    state.userInfo = payload
   },
-  SET_AVATAR: (state, avatar) => {
-    state.avatar = avatar
+  // 清除用户信息
+  removeUserInfo(state) {
+    state.userInfo = {}
   }
 }
-
 const actions = {
-  // user login
-  login({ commit }, userInfo) {
-    const { username, password } = userInfo
-    return new Promise((resolve, reject) => {
-      login({ username: username.trim(), password: password }).then(response => {
-        const { data } = response
-        commit('SET_TOKEN', data.token)
-        setToken(data.token)
-        resolve()
-      }).catch(error => {
-        reject(error)
-      })
-    })
+  async  login(context, data) {
+    const result = await login(data)
+    context.commit('setToken', result)
   },
 
-  // get user info
-  getInfo({ commit, state }) {
-    return new Promise((resolve, reject) => {
-      getInfo(state.token).then(response => {
-        const { data } = response
-
-        if (!data) {
-          return reject('Verification failed, please Login again.')
-        }
-
-        const { name, avatar } = data
-
-        commit('SET_NAME', name)
-        commit('SET_AVATAR', avatar)
-        resolve(data)
-      }).catch(error => {
-        reject(error)
-      })
-    })
+  // 用户信息的修改
+  async getUserInfo(context) {
+    const result = await getInfo() // 获取返回值
+    const baseInfo = await getUserDetailById(result.userId)
+    context.commit('updataUserInfo', { ...result, ...baseInfo }) // 将整个的个人信息设置到用户的vuex数据中
+    return result // 这里为什么要返回 为后面埋下伏笔
   },
-
-  // user logout
-  logout({ commit, state }) {
-    return new Promise((resolve, reject) => {
-      logout(state.token).then(() => {
-        removeToken() // must remove  token  first
-        resetRouter()
-        commit('RESET_STATE')
-        resolve()
-      }).catch(error => {
-        reject(error)
-      })
-    })
-  },
-
-  // remove token
-  resetToken({ commit }) {
-    return new Promise(resolve => {
-      removeToken() // must remove  token  first
-      commit('RESET_STATE')
-      resolve()
-    })
+  // 登出
+  logout({ commit }) {
+    commit('removeToken')
+    commit('removeUserInfo')
   }
+
 }
 
 export default {
