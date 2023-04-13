@@ -4,7 +4,8 @@ import Nprogress from 'nprogress'
 import 'nprogress/nprogress.css'
 
 // 白名单
-const whitleList = ['/login', '/404', '/dashboard']
+// const whitleList = ['/login', '/404', '/dashboard', '/departments']
+const whitleList = ['/login', '/404']
 
 // 前置守卫
 router.beforeEach(async(to, form, next) => {
